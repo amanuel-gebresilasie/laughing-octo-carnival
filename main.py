@@ -23,6 +23,7 @@ def confirm_exit():
             return False
         else:
             continue
+#create a socket obj
 _socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 _socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 _socket.bind((HOST,PORT))
