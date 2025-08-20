@@ -6,7 +6,7 @@ recv_buff = 1024
 
 RUN = True
 
-body = "<h1>hello_world_!</h1>"
+body = "<body bgcolor='#000' style='color:#fff;'><h1>hello_world_!</h1></body>"
 conn_num = 0
 to_send = f"HTTP/1.1 200 OK\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}\r\n\r\n"
 def confirm_exit():
@@ -17,9 +17,9 @@ def confirm_exit():
             print("\033[F\r\033[K", end="")
         except KeyboardInterrupt:
             continue
-        if ex == "yes" or ex == "y":
+        if ex in ("yes","y"):
             return True
-        elif ex == "no" or ex == "n":
+        elif ex in ("no", "n"):
             return False
         else:
             continue
