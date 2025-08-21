@@ -6,7 +6,7 @@ recv_buff = 1024
 
 RUN = True
 
-body = "<body bgcolor='#000' style='color:#fff;'><h1>hello_world_!</h1></body>"
+body = "<body bgcolor='#000' style='color:red;'><h1>hello_world_!</h1></body>"
 conn_num = 0
 to_send = f"HTTP/1.1 200 OK\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}\r\n\r\n"
 def confirm_exit():
