@@ -8,11 +8,15 @@ RUN = True
 
 body = "<body bgcolor='#000' style='color:red;'><h1>hello_world_!</h1></body>"
 conn_num = 0
-to_send = f"HTTP/1.1 200 OK\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}\r\n\r\n"
+to_send = f"HTTP/1.1 200 OK\r\nContent-Length: {len(body)}\r\nConnection: close\r\nContent-Type: text/html; charset=utf-8\r\n\r\n{body}"
+
+def red(txt):
+    return f"\033[31m{txt}\033[0m"
+def green(txt):                                      return f"\033[32m{txt}\033[0m"
 def confirm_exit():
     while True:
         try:
-            ex = input(f"Quit?[\033[32myes(y)\033[0m/\033[31mno(n)\033[0m]: ")
+            ex = input(f"Quit?[{green('yes(y)')}/{red('no(n)')}]: ")
             ex = ex.lower()
             print("\033[F\r\033[K", end="")
         except KeyboardInterrupt:
@@ -23,18 +27,22 @@ def confirm_exit():
             return False
         else:
             continue
+
 #create a socket obj
 _socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+#make socket reusable
 _socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 _socket.bind((HOST,PORT))
 _socket.listen()
 print(f"listening on ({HOST},{PORT})")
+#main loop
 while RUN:
-    print(f"\n\033[32m[{conn_num}]\033[0m listening...")
+    print(green(f"[{conn_num}]")+" listening...")
     try:
         conn,addr = _socket.accept()
+        conn.settimeout(5)
     except KeyboardInterrupt:
-        print(f"\n\033[31m[^C]\033[0m interrupted by user.")
+        print(red("[^C]")+" interrupted by user.")
         if confirm_exit():
             break
         else:
@@ -45,12 +53,20 @@ while RUN:
         print(f"Error type: {err_type}")
 
     conn_num += 1
-    print(f"\033[32mNew connection: {addr}\033[0m")
+    print(green(f"New connection: {addr}"))
     buff = 0
     data = ""
     while not buff:
-        buff = conn.recv(recv_buff)
-        data += buff.decode("utf-8")
+        try:
+            buff = conn.recv(recv_buff)
+            data += buff.decode("utf-8")
+        except TimeoutError:
+            print(red(f"Time out: closing connection {addr}"))
+            conn.close()
+            conn_num-=1
+            break
+    if data == "":
+        continue
     data_split = data.split("\r\n")
     request_line = data_split[0]
     request_line_split = request_line.split()
@@ -62,20 +78,21 @@ while RUN:
             conn.close()
             conn_num-=1
             print(f"\nconnection #{conn_num} closed. Due to an unimplemented path.")
-            print(f"\033[31mPath: {path}\033[0m")
+            print(red(f"Path: {path}"))
+            print(red("404 NOT FOUND"))
             continue
         print(f"Http-Ver: {http_ver}")
         print(f"Method: {method}")
         print(f"Path: {path}")
         conn.sendall(to_send.encode("utf-8"))
-        print(f"\033[32m200 OK\033[0m\n")
+        print(green("200 OK\n"))
         conn.close()
         conn_num-=1
     else:
         conn.close()
         conn_num-=1
         print(f"\nconnection #{conn_num} closed. Due to an unimplemented method.")
-        print(f"\033[31mMethod: {method}\033[0m")
+        print(red(f"Method: {method}"))
 
 _socket.close()
 print("End of life. Socket closed.")
